@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>INGEL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+  background: #000;
+  color: white;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left-panel {
+  width: 25%;
+  background: linear-gradient(135deg, rgba(0, 30, 60, 0.9), rgba(0, 15, 30, 0.95));
+  border-right: 1px solid rgba(0, 140, 255, 0.3);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.right-panel {
+  width: 75%;
+  background: linear-gradient(45deg, rgba(10, 10, 20, 0.95), rgba(20, 20, 40, 0.9));
+  padding: 30px;
+  overflow-y: auto;
+}
+
+video, canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+video {
+  transform: scaleX(-1);
+}
+
+canvas {
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.menu-item {
+  background: rgba(0, 80, 160, 0.4);
+  border: 1px solid rgba(0, 140, 255, 0.2);
+  border-radius: 12px;
+  padding: 18px 20px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.menu-item:hover {
+  background: rgba(0, 100, 200, 0.6);
+  transform: translateX(5px);
+}
+
+.menu-item.active {
+  background: rgba(0, 120, 255, 0.7);
+  box-shadow: 0 0 20px rgba(0, 120, 255, 0.5);
+}
+
+.page {
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 140, 255, 0.35);
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-weight: 600;
+  z-index: 1001;
+  backdrop-filter: blur(10px);
+}
+
+.selection-timer {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+  border-radius: 5px;
+  transition: width 0.1s;
+}
+
+.game-container {
+  text-align: center;
+}
+
+.game-canvas {
+  border: 2px solid rgba(0, 200, 255, 0.5);
+  border-radius: 10px;
+  background: rgba(0, 20, 40, 0.8);
+  margin: 20px auto;
+  display: block;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 20px;
+  font-size: 1.2rem;
+}
+
+.game-stats span {
+  color: #00ffaa;
+  font-weight: bold;
+}
+
+.liquid-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 25px 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  min-width: 180px;
+  text-align: center;
+  margin: 20px auto;
+  display: block;
+  max-width: 300px;
+}
+
+.liquid-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-5px);
+}
+
+h1 {
+  color: #00ccff;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #00ffaa;
+  margin-bottom: 15px;
+}
+
+p {
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+#gameStatus {
+  padding: 15px;
+  background: rgba(0, 60, 120, 0.3);
+  border-radius: 10px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="left-panel">
+    <h2 style="text-align:center; margin-bottom:30px;">Interfaz Gestual (INGEL)</h2>
+    <div class="menu">
+   <div class="menu-item" onclick="window.location.href='../index.html'">Origen</div>
+
+      <div class="menu-item active" data-page="landing">Principal</div>
+      <div class="menu-item" data-page="documentation">Documentación</div>
+      <div class="menu-item" data-page="game">Juego/Uso Libre</div>
+    </div>
+    <div style="margin-top: 40px; padding: 15px; background: rgba(0,0,0,0.3); border-radius:10px;">
+      <p style="font-size:0.9rem;">Mueve tu dedo índice frente a la cámara para controlar el punto rojo.</p>
+    </div>
+  </div>
+  
+  <div class="right-panel">
+    <div class="page landing active">
+      <h1>Interfaz Gestual PRO</h1>
+      <p>Sistema de control por gestos usando visión artificial y aprendizaje automático.</p>
+      <p>Controla la interfaz completamente con movimientos de tu mano.</p>
+      <p><strong>Características:</strong></p>
+      <ul style="margin-left:20px; margin-bottom:20px;">
+        <li>Control gestual preciso con MediaPipe</li>
+        <li>Minijuego de serpiente controlado por gestos</li>
+        <li>Modo uso libre con selección por tiempo</li>
+        <li>Calibración automática</li>
+      </ul>
+    </div>
+    
+    <div class="page documentation">
+      <h2>Documentación Técnica</h2>
+      <p><strong>Tecnologías utilizadas:</strong></p>
+      <ul style="margin-left:20px; margin-bottom:20px;">
+        <li>MediaPipe Hands para detección de gestos</li>
+        <li>HTML5 Canvas para renderizado</li>
+        <li>JavaScript ES6+</li>
+        <li>CSS3 con efectos modernos</li>
+      </ul>
+      <p><strong>Instrucciones de uso:</strong></p>
+      <ol style="margin-left:20px;">
+        <li>Permite el acceso a la cámara cuando se solicite</li>
+        <li>Espera 3 segundos para la calibración</li>
+        <li>Mueve tu dedo índice para controlar el cursor rojo</li>
+        <li>Mantén el cursor sobre elementos por 1.5 segundos para seleccionar</li>
+      </ol>
+    </div>
+    
+    <div class="page game">
+      <div class="game-container">
+        <h2 id="modeTitle">Modo: Minijuego</h2>
+        <div class="game-stats">
+          <div>Puntuación: <span id="score">0</span></div>
+          <div>Manzanas: <span id="apples">0</span></div>
+          <div>Velocidad: <span id="speed">5</span></div>
+        </div>
+        <canvas id="gameCanvas" class="game-canvas" width="800" height="500"></canvas>
+        <div class="liquid-btn" id="switchMode">Cambiar a Uso Libre</div>
+        <div id="gameStatus">Controla la serpiente roja con tu dedo para comer manzanas verdes.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<video id="video" autoplay muted playsinline></video>
+<canvas id="canvas"></canvas>
+<div class="panel" id="panel">
+  <div class="selection-timer" id="selectionTimer"></div>
+  CALIBRANDO...
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+// Configuración
+const SELECTION_TIME = 1500;
+const CALIBRATION_TIME = 3000;
+const SNAKE_SIZE = 20;
+const APPLE_SIZE = 15;
+const SNAKE_SPEED = 8; // Velocidad base de la serpiente
+const MIN_DISTANCE = 10; // Distancia mínima para empezar a moverse
+
+// Elementos DOM
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const panel = document.getElementById('panel');
+const selectionTimer = document.getElementById('selectionTimer');
+const gameCanvas = document.getElementById('gameCanvas');
+const gameCtx = gameCanvas.getContext('2d');
+const menuItems = document.querySelectorAll('.menu-item');
+const pages = document.querySelectorAll('.page');
+const scoreElement = document.getElementById('score');
+const applesElement = document.getElementById('apples');
+const speedElement = document.getElementById('speed');
+const modeTitle = document.getElementById('modeTitle');
+const gameStatus = document.getElementById('gameStatus');
+const switchModeBtn = document.getElementById('switchMode');
+
+// Estado
+let state = {
+  cursor: { x: 0.5, y: 0.5 },
+  target: { x: 400, y: 250 }, // Posición objetivo de la serpiente
+  calibration: { 
+    minX: 1, maxX: 0, minY: 1, maxY: 0, 
+    calibrated: false, start: null 
+  },
+  hover: { element: null, start: null },
+  game: {
+    active: false,
+    paused: false,
+    score: 0,
+    apples: 0,
+    speed: 5,
+    snake: [{x: 400, y: 250}],
+    apple: {x: 100, y: 100},
+    direction: {x: 0, y: 0},
+    mode: 'game',
+    lastUpdate: 0,
+    updateInterval: 1000 / 60 // 60 FPS
+  }
+};
+
+// MediaPipe Hands
+const hands = new Hands({
+  locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+  }
+});
+
+hands.setOptions({
+  maxNumHands: 1,
+  modelComplexity: 1,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+// Inicializar
+function init() {
+  resizeCanvas();
+  setupEventListeners();
+  setupCamera();
+  drawGame();
+  requestAnimationFrame(gameLoop);
+}
+
+// Canvas
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gameCanvas.width = Math.min(800, window.innerWidth * 0.7);
+  gameCanvas.height = Math.min(500, window.innerHeight * 0.7);
+  
+  // Reubicar la manzana si el canvas cambia de tamaño
+  if (state.game.apple) {
+    state.game.apple.x = Math.min(state.game.apple.x, gameCanvas.width - APPLE_SIZE);
+    state.game.apple.y = Math.min(state.game.apple.y, gameCanvas.height - APPLE_SIZE);
+  }
+}
+
+// Eventos
+function setupEventListeners() {
+  window.addEventListener('resize', resizeCanvas);
+  
+  menuItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const page = item.dataset.page;
+      menuItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      pages.forEach(p => p.classList.remove('active'));
+      document.querySelector(`.page.${page}`).classList.add('active');
+    });
+  });
+  
+  switchModeBtn.addEventListener('click', toggleMode);
+}
+
+// Cámara
+function setupCamera() {
+  const camera = new Camera(video, {
+    onFrame: async () => {
+      try {
+        await hands.send({image: video});
+      } catch (e) {
+        console.log('Error MediaPipe:', e);
+      }
+    },
+    width: 640,
+    height: 480
+  });
+  camera.start().catch(e => {
+    console.log('Error cámara:', e);
+    panel.textContent = "Error cámara - Usando modo simulado";
+    enableMouseControl();
+  });
+}
+
+// Procesar resultados de MediaPipe
+hands.onResults((results) => {
+  if (!state.calibration.calibrated) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    const landmarks = results.multiHandLandmarks[0];
+    const indexFinger = landmarks[8];
+    
+    processFingerPosition(indexFinger);
+  } else {
+    resetHover();
+  }
+});
+
+// Procesar posición del dedo
+function processFingerPosition(finger) {
+  const now = performance.now();
+  
+  // Calibración
+  if (!state.calibration.calibrated) {
+    calibrate(finger, now);
+    return;
+  }
+  
+  // Actualizar cursor
+  updateCursor(finger);
+  drawCursor();
+  
+  // Actualizar posición objetivo de la serpiente
+  updateSnakeTarget();
+  
+  // Verificar hover
+  checkHover();
+}
+
+// Calibración
+function calibrate(finger, now) {
+  if (!state.calibration.start) {
+    state.calibration.start = now;
+    panel.textContent = "CALIBRANDO... Mueve tu mano";
+  }
+  
+  const cal = state.calibration;
+  cal.minX = Math.min(cal.minX, finger.x);
+  cal.maxX = Math.max(cal.maxX, finger.x);
+  cal.minY = Math.min(cal.minY, finger.y);
+  cal.maxY = Math.max(cal.maxY, finger.y);
+  
+  if (now - cal.start > CALIBRATION_TIME) {
+    if (cal.maxX - cal.minX < 0.1) {
+      cal.minX = 0;
+      cal.maxX = 1;
+    }
+    if (cal.maxY - cal.minY < 0.1) {
+      cal.minY = 0;
+      cal.maxY = 1;
+    }
+    
+    cal.calibrated = true;
+    panel.textContent = "LISTO - Controla con tu dedo";
+    
+    // Iniciar juego si está en modo juego
+    if (state.game.mode === 'game') {
+      startGame();
+    }
+  }
+}
+
+// Actualizar cursor con suavizado
+function updateCursor(finger) {
+  const cal = state.calibration;
+  
+  // Normalizar coordenadas
+  let x = (finger.x - cal.minX) / (cal.maxX - cal.minX);
+  let y = (finger.y - cal.minY) / (cal.maxY - cal.minY);
+  
+  // Limitar y invertir eje X (porque la cámara está invertida)
+  x = Math.min(1, Math.max(0, 1 - x)); // Invertir X
+  y = Math.min(1, Math.max(0, y));
+  
+  // Suavizar movimiento (más suave para evitar saltos)
+  state.cursor.x = state.cursor.x * 0.7 + x * 0.3;
+  state.cursor.y = state.cursor.y * 0.7 + y * 0.3;
+}
+
+// Dibujar cursor
+function drawCursor() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const x = state.cursor.x * canvas.width;
+  const y = state.cursor.y * canvas.height;
+  
+  // Círculo exterior de guía
+  ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+  ctx.beginPath();
+  ctx.arc(x, y, 30, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Círculo interior (serpiente/cursor)
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(x, y, 15, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Punto central
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Línea que conecta cursor con serpiente (solo en modo juego)
+  if (state.game.mode === 'game' && state.game.active) {
+    const snakeHead = state.game.snake[0];
+    const gameX = state.cursor.x * gameCanvas.width;
+    const gameY = state.cursor.y * gameCanvas.height;
+    
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(
+      (snakeHead.x / gameCanvas.width) * canvas.width,
+      (snakeHead.y / gameCanvas.height) * canvas.height
+    );
+    ctx.stroke();
+  }
+}
+
+// Actualizar objetivo de la serpiente (suave y preciso)
+function updateSnakeTarget() {
+  // Convertir coordenadas del cursor a coordenadas del juego
+  state.target.x = state.cursor.x * gameCanvas.width;
+  state.target.y = state.cursor.y * gameCanvas.height;
+}
+
+// Control de serpiente (suave y natural)
+function updateSnakePosition() {
+  if (!state.game.active || state.game.paused || state.game.mode !== 'game') return;
+  
+  const head = state.game.snake[0];
+  
+  // Calcular distancia al objetivo
+  const dx = state.target.x - head.x;
+  const dy = state.target.y - head.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  // Si estamos muy cerca, no moverse
+  if (distance < MIN_DISTANCE) {
+    state.game.direction.x = 0;
+    state.game.direction.y = 0;
+    return;
+  }
+  
+  // Calcular dirección normalizada
+  const speed = SNAKE_SPEED + (state.game.speed - 5); // Velocidad ajustada por nivel
+  const moveDistance = Math.min(distance, speed);
+  
+  state.game.direction.x = (dx / distance) * moveDistance;
+  state.game.direction.y = (dy / distance) * moveDistance;
+}
+
+// Verificar hover
+function checkHover() {
+  const elements = document.querySelectorAll('.menu-item, .liquid-btn');
+  const cursorX = state.cursor.x * window.innerWidth;
+  const cursorY = state.cursor.y * window.innerHeight;
+  
+  let hoveredElement = null;
+  
+  elements.forEach(element => {
+    const rect = element.getBoundingClientRect();
+    if (cursorX >= rect.left && cursorX <= rect.right &&
+        cursorY >= rect.top && cursorY <= rect.bottom) {
+      hoveredElement = element;
+      element.style.backgroundColor = 'rgba(0, 120, 255, 0.5)';
+    } else {
+      if (!element.classList.contains('active')) {
+        element.style.backgroundColor = '';
+      }
+    }
+  });
+  
+  if (hoveredElement && hoveredElement !== state.hover.element) {
+    state.hover.element = hoveredElement;
+    state.hover.start = performance.now();
+    selectionTimer.style.width = "0%";
+  }
+  
+  if (!hoveredElement) {
+    resetHover();
+    return;
+  }
+  
+  if (state.hover.start) {
+    const elapsed = performance.now() - state.hover.start;
+    const progress = Math.min(elapsed / SELECTION_TIME, 1);
+    selectionTimer.style.width = `${progress * 100}%`;
+    
+    if (progress >= 1) {
+      selectElement(hoveredElement);
+      resetHover();
+    }
+  }
+}
+
+function resetHover() {
+  state.hover.element = null;
+  state.hover.start = null;
+  selectionTimer.style.width = "0%";
+}
+
+// Seleccionar elemento
+function selectElement(element) {
+  if (element.classList.contains('menu-item')) {
+    element.click();
+  } else if (element.id === 'switchMode') {
+    toggleMode();
+  }
+}
+
+// Alternar modo
+function toggleMode() {
+  if (state.game.mode === 'game') {
+    state.game.mode = 'free';
+    modeTitle.textContent = 'Modo: Uso Libre';
+    switchModeBtn.textContent = 'Cambiar a Minijuego';
+    gameStatus.textContent = 'Modo libre activo. Usa el punto rojo para interactuar con elementos.';
+    state.game.active = false;
+  } else {
+    state.game.mode = 'game';
+    modeTitle.textContent = 'Modo: Minijuego';
+    switchModeBtn.textContent = 'Cambiar a Uso Libre';
+    gameStatus.textContent = 'Controla la serpiente roja con tu dedo para comer manzanas verdes.';
+    if (state.calibration.calibrated) {
+      startGame();
+    }
+  }
+}
+
+// Juego
+function startGame() {
+  state.game.active = true;
+  state.game.paused = false;
+  state.game.lastUpdate = performance.now();
+}
+
+function drawGame() {
+  gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+  
+  // Fondo con patrón sutil
+  gameCtx.fillStyle = 'rgba(0, 20, 40, 0.9)';
+  gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+  
+  // Dibujar grid sutil
+  gameCtx.strokeStyle = 'rgba(0, 100, 200, 0.1)';
+  gameCtx.lineWidth = 1;
+  for (let x = 0; x < gameCanvas.width; x += 50) {
+    gameCtx.beginPath();
+    gameCtx.moveTo(x, 0);
+    gameCtx.lineTo(x, gameCanvas.height);
+    gameCtx.stroke();
+  }
+  for (let y = 0; y < gameCanvas.height; y += 50) {
+    gameCtx.beginPath();
+    gameCtx.moveTo(0, y);
+    gameCtx.lineTo(gameCanvas.width, y);
+    gameCtx.stroke();
+  }
+  
+  // Dibujar serpiente
+  state.game.snake.forEach((segment, i) => {
+    // Cabeza más grande y con gradiente
+    if (i === 0) {
+      // Gradiente para la cabeza
+      const gradient = gameCtx.createRadialGradient(
+        segment.x, segment.y, 0,
+        segment.x, segment.y, SNAKE_SIZE/2
+      );
+      gradient.addColorStop(0, '#ff0000');
+      gradient.addColorStop(1, '#cc0000');
+      
+      gameCtx.fillStyle = gradient;
+      gameCtx.beginPath();
+      gameCtx.arc(segment.x, segment.y, SNAKE_SIZE/2, 0, Math.PI * 2);
+      gameCtx.fill();
+      
+      // Ojos
+      gameCtx.fillStyle = 'white';
+      gameCtx.beginPath();
+      // Ojo izquierdo (desde la perspectiva de la serpiente)
+      const eyeOffsetX = state.game.direction.y * 3;
+      const eyeOffsetY = -state.game.direction.x * 3;
+      gameCtx.arc(segment.x - 5 + eyeOffsetX, segment.y - 5 + eyeOffsetY, 4, 0, Math.PI * 2);
+      gameCtx.arc(segment.x + 5 + eyeOffsetX, segment.y - 5 + eyeOffsetY, 4, 0, Math.PI * 2);
+      gameCtx.fill();
+      
+      gameCtx.fillStyle = 'black';
+      gameCtx.beginPath();
+      gameCtx.arc(segment.x - 5 + eyeOffsetX, segment.y - 5 + eyeOffsetY, 2, 0, Math.PI * 2);
+      gameCtx.arc(segment.x + 5 + eyeOffsetX, segment.y - 5 + eyeOffsetY, 2, 0, Math.PI * 2);
+      gameCtx.fill();
+    } else {
+      // Cuerpo con gradiente
+      const gradient = gameCtx.createRadialGradient(
+        segment.x, segment.y, 0,
+        segment.x, segment.y, SNAKE_SIZE/2 - 2
+      );
+      gradient.addColorStop(0, '#ff4444');
+      gradient.addColorStop(1, '#aa2222');
+      
+      gameCtx.fillStyle = gradient;
+      gameCtx.beginPath();
+      gameCtx.arc(segment.x, segment.y, SNAKE_SIZE/2 - 2, 0, Math.PI * 2);
+      gameCtx.fill();
+    }
+  });
+  
+  // Dibujar manzana con detalle
+  // Cuerpo de la manzana
+  const appleGradient = gameCtx.createRadialGradient(
+    state.game.apple.x, state.game.apple.y - 2, 0,
+    state.game.apple.x, state.game.apple.y, APPLE_SIZE/2
+  );
+  appleGradient.addColorStop(0, '#44ff44');
+  appleGradient.addColorStop(0.7, '#22aa22');
+  appleGradient.addColorStop(1, '#118811');
+  
+  gameCtx.fillStyle = appleGradient;
+  gameCtx.beginPath();
+  gameCtx.arc(state.game.apple.x, state.game.apple.y, APPLE_SIZE/2, 0, Math.PI * 2);
+  gameCtx.fill();
+  
+  // Destello
+  gameCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  gameCtx.beginPath();
+  gameCtx.arc(state.game.apple.x - 3, state.game.apple.y - 3, 3, 0, Math.PI * 2);
+  gameCtx.fill();
+  
+  // Tallo
+  gameCtx.fillStyle = '#8B4513';
+  gameCtx.fillRect(state.game.apple.x - 1, state.game.apple.y - 10, 2, 8);
+  
+  // Hoja
+  gameCtx.fillStyle = '#228822';
+  gameCtx.beginPath();
+  gameCtx.ellipse(state.game.apple.x + 3, state.game.apple.y - 8, 4, 2, Math.PI/4, 0, Math.PI * 2);
+  gameCtx.fill();
+  
+  // Dibujar línea de guía desde cabeza a objetivo (solo cuando hay movimiento)
+  if (Math.abs(state.game.direction.x) > 0.1 || Math.abs(state.game.direction.y) > 0.1) {
+    const head = state.game.snake[0];
+    gameCtx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+    gameCtx.lineWidth = 2;
+    gameCtx.setLineDash([5, 5]);
+    gameCtx.beginPath();
+    gameCtx.moveTo(head.x, head.y);
+    gameCtx.lineTo(state.target.x, state.target.y);
+    gameCtx.stroke();
+    gameCtx.setLineDash([]);
+  }
+}
+
+function updateGame(currentTime) {
+  if (!state.game.active || state.game.paused || state.game.mode !== 'game') return;
+  
+  // Control de FPS
+  const deltaTime = currentTime - state.game.lastUpdate;
+  if (deltaTime < state.game.updateInterval) return;
+  
+  state.game.lastUpdate = currentTime - (deltaTime % state.game.updateInterval);
+  
+  // Actualizar posición de la serpiente
+  updateSnakePosition();
+  
+  const head = state.game.snake[0];
+  
+  // Mover cabeza basado en dirección calculada
+  const newHead = {
+    x: head.x + state.game.direction.x,
+    y: head.y + state.game.direction.y
+  };
+  
+  // Bordes (con wrap-around)
+  if (newHead.x < 0) newHead.x = gameCanvas.width;
+  if (newHead.x > gameCanvas.width) newHead.x = 0;
+  if (newHead.y < 0) newHead.y = gameCanvas.height;
+  if (newHead.y > gameCanvas.height) newHead.y = 0;
+  
+  // Manzana
+  const dx = newHead.x - state.game.apple.x;
+  const dy = newHead.y - state.game.apple.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance < SNAKE_SIZE/2 + APPLE_SIZE/2) {
+    state.game.score += 10;
+    state.game.apples++;
+    
+    if (state.game.apples % 5 === 0 && state.game.speed < 15) {
+      state.game.speed++;
+      speedElement.textContent = state.game.speed;
+    }
+    
+    scoreElement.textContent = state.game.score;
+    applesElement.textContent = state.game.apples;
+    
+    // Nueva manzana en posición aleatoria
+    state.game.apple.x = Math.random() * (gameCanvas.width - APPLE_SIZE * 2) + APPLE_SIZE;
+    state.game.apple.y = Math.random() * (gameCanvas.height - APPLE_SIZE * 2) + APPLE_SIZE;
+    
+    // Añadir nuevo segmento
+    state.game.snake.unshift(newHead);
+  } else {
+    // Mover normalmente
+    state.game.snake.unshift(newHead);
+    state.game.snake.pop();
+  }
+  
+  // Colisión consigo misma (solo si la serpiente es larga)
+  if (state.game.snake.length > 5) {
+    for (let i = 5; i < state.game.snake.length; i++) {
+      const segment = state.game.snake[i];
+      const distToSegment = Math.sqrt(
+        Math.pow(newHead.x - segment.x, 2) + 
+        Math.pow(newHead.y - segment.y, 2)
+      );
+      
+      if (distToSegment < SNAKE_SIZE/2) {
+        resetGame();
+        return;
+      }
+    }
+  }
+  
+  drawGame();
+}
+
+function resetGame() {
+  state.game.score = 0;
+  state.game.apples = 0;
+  state.game.speed = 5;
+  state.game.snake = [{x: 400, y: 250}];
+  state.game.apple = {x: 100, y: 100};
+  state.game.direction = {x: 0, y: 0};
+  state.target = {x: 400, y: 250};
+  
+  scoreElement.textContent = '0';
+  applesElement.textContent = '0';
+  speedElement.textContent = '5';
+  
+  drawGame();
+}
+
+// Bucle principal del juego
+function gameLoop(currentTime) {
+  updateGame(currentTime);
+  requestAnimationFrame(gameLoop);
+}
+
+// Control con mouse como fallback
+function enableMouseControl() {
+  document.addEventListener('mousemove', (e) => {
+    state.cursor.x = e.clientX / window.innerWidth;
+    state.cursor.y = e.clientY / window.innerHeight;
+    drawCursor();
+    updateSnakeTarget();
+    checkHover();
+  });
+  
+  document.addEventListener('click', (e) => {
+    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+    elements.forEach(element => {
+      if (element.classList.contains('menu-item') || element.id === 'switchMode') {
+        selectElement(element);
+      }
+    });
+  });
+  
+  // Simular calibración completada
+  state.calibration.calibrated = true;
+  state.calibration.minX = 0;
+  state.calibration.maxX = 1;
+  state.calibration.minY = 0;
+  state.calibration.maxY = 1;
+  
+  if (state.game.mode === 'game') {
+    startGame();
+  }
+}
+
+// Iniciar
+window.addEventListener('load', init);
+
+// Fallback si MediaPipe falla
+setTimeout(() => {
+  if (!state.calibration.calibrated && state.calibration.start) {
+    panel.textContent = "Usando modo simulado - Mueve el mouse";
+    enableMouseControl();
+  }
+}, 5000);
+</script>
+</body>
+</html>
